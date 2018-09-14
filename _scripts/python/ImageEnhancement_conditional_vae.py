@@ -22,21 +22,26 @@ import scipy.io
 import os
 from numpy.random import permutation
 import matplotlib as mtplot
+from keras.utils import plot_model
 
 #
 Numtrain = 4250
 
 # loading data
 
-f = h5py.File(r'/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Input_image_hists_rgb.mat')
-data = f.items()[0][1].value
+#f = h5py.File(r'/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Input_image_hists_rgb.mat')
+f = h5py.File(r'E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/Input_image_hists_rgb.mat')
+#data = f.items()[0][1].value
+data = f.get('Input_image_hists_rgb')
 InputHists= np.array(data)
 InputHists=InputHists.astype(np.float32)
 InputHists = InputHists / InputHists.max()
 print(InputHists.shape)
 
-f = h5py.File(r'/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Output_image_hists_rgb.mat')
-data = f.items()[0][1].value
+#f = h5py.File(r'/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Output_image_hists_rgb.mat')
+f = h5py.File('E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/Output_image_hists_rgb.mat')
+#data = f.items()[0][1].value
+data = f.get('Output_image_hists_rgb')
 OutputHists= np.array(data)
 OutputHists=OutputHists.astype(np.float32)
 OutputHists = OutputHists / OutputHists.max()
@@ -44,8 +49,10 @@ print(OutputHists.shape)
 
 
 
-f = h5py.File(r'/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/label_one_shot.mat')
-data = f.items()[0][1].value
+#f = h5py.File(r'/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/label_one_shot.mat')
+f = h5py.File(r'E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/label_one_shot.mat')
+#data = f.items()[0][1].value
+data = f.get('label_one_shot')
 LabelOneShot = np.array(data)
 LabelOneShot=LabelOneShot.astype(np.float32)
 print(LabelOneShot.shape)
@@ -74,7 +81,7 @@ n_x = X_train_input.shape[1]
 n_y = y_train.shape[1]
 
 # nubmer of epochs
-n_epoch = 100
+n_epoch = 1
 
 ##  ENCODER ##
 
@@ -166,6 +173,7 @@ def construct_numvec(digit, z = None):
 
 # compile and fit
 cvae.compile(optimizer=optim, loss=vae_loss, metrics = [KL_loss, recon_loss])
+plot_model(cvae, show_shapes= True, show_layer_names=True, to_file='E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/cvae_plot.png')
 cvae_hist = cvae.fit([X_train_input, y_train], X_train_output, batch_size=m, epochs=n_epoch,
 							validation_data = ([X_test_input[500:], y_test[500:]], X_test_output[500:]),
 							callbacks = [EarlyStopping(patience = 5)])
@@ -174,8 +182,8 @@ cvae_hist = cvae.fit([X_train_input, y_train], X_train_output, batch_size=m, epo
 ztmp = encoder.predict([X_test_input,y_test])
 dtmp = np.concatenate([X_test_input,ztmp,y_test],axis=1)
 generated = decoder.predict(dtmp)
-np.savetxt('/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Output_test.txt', generated)
-
+#np.savetxt('/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Output_test.txt', generated)
+np.savetxt('E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/Output_test.txt', generated)
 
 #mtplot.pyplot.plot([1,2,3])
 index = np.arange(generated.shape[1])
@@ -185,5 +193,3 @@ mtplot.pyplot.bar(index,X_test_input[0])
 mtplot.pyplot.bar(index,X_test_output[0])
 #mtplot.pyplot.subplot(133)
 mtplot.pyplot.bar(index,generated[0])
-
-
