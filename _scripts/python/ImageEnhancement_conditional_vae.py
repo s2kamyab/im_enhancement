@@ -74,14 +74,14 @@ optim = 'adam'
 
 # dimension of latent space (batch size by latent dim)
 m = 50
-n_z = 50
+n_z = 100
 
 # dimension of input (and label)
 n_x = X_train_input.shape[1]
 n_y = y_train.shape[1]
 
 # nubmer of epochs
-n_epoch = 1
+n_epoch = 30
 
 ##  ENCODER ##
 
@@ -121,16 +121,18 @@ def sample_ztest(args):
 ##  DECODER  ##
 
 # dense ReLU to sigmoid layers
-decoder_hidden = Dense(512, activation='relu')
+decoder_hidden1 = Dense(200, activation='relu')
+decoder_hidden2 = Dense(512, activation='relu')
 decoder_out = Dense(768, activation='sigmoid')
 
 z_cond_new = concatenate([X, z, cond])
 
-h_p = decoder_hidden(z_cond_new)
+h_p1 = decoder_hidden1(z_cond_new)
+h_p2 = decoder_hidden2(h_p1)
 # h_q1 = Dense(1024, activation='relu')(h_p)
 # h_q2 = Dense(256, activation='relu')(h_q1)
 # h_q3 = Dense(512, activation='relu')(h_q2)
-outputs = decoder_out(h_p)
+outputs = decoder_out(h_p2)
 
 # define cvae and encoder models
 cvae = Model([X, cond], outputs)
@@ -138,8 +140,9 @@ encoder = Model([X, cond], mu)
 
 # reuse decoder layers to define decoder separately
 d_in = Input(shape=(n_z+n_y+n_x,))
-d_h = decoder_hidden(d_in)
-d_out = decoder_out(d_h)
+d_h1 = decoder_hidden1(d_in)
+d_h2 = decoder_hidden2(d_h1)
+d_out = decoder_out(d_h2)
 decoder = Model(d_in, d_out)
 
 # define loss (sum of reconstruction and KL divergence)
