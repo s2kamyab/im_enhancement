@@ -18,7 +18,7 @@ from PIL import Image as im
 #from scipy.ndimage import interpolation as inter
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
 import time
-import scipy.io
+import scipy.io as sio
 import os
 from numpy.random import permutation
 import matplotlib as mtplot
@@ -81,7 +81,7 @@ n_x = X_train_input.shape[1]
 n_y = y_train.shape[1]
 
 # nubmer of epochs
-n_epoch = 30
+n_epoch = 100
 
 ##  ENCODER ##
 
@@ -121,18 +121,18 @@ def sample_ztest(args):
 ##  DECODER  ##
 
 # dense ReLU to sigmoid layers
-decoder_hidden1 = Dense(200, activation='relu')
-decoder_hidden2 = Dense(512, activation='relu')
+#decoder_hidden1 = Dense(200, activation='relu')
+decoder_hidden = Dense(512, activation='relu')
 decoder_out = Dense(768, activation='sigmoid')
 
 z_cond_new = concatenate([X, z, cond])
 
-h_p1 = decoder_hidden1(z_cond_new)
-h_p2 = decoder_hidden2(h_p1)
+h_p = decoder_hidden(z_cond_new)
+#h_p2 = decoder_hidden2(h_p1)
 # h_q1 = Dense(1024, activation='relu')(h_p)
 # h_q2 = Dense(256, activation='relu')(h_q1)
 # h_q3 = Dense(512, activation='relu')(h_q2)
-outputs = decoder_out(h_p2)
+outputs = decoder_out(h_p)
 
 # define cvae and encoder models
 cvae = Model([X, cond], outputs)
@@ -140,9 +140,9 @@ encoder = Model([X, cond], mu)
 
 # reuse decoder layers to define decoder separately
 d_in = Input(shape=(n_z+n_y+n_x,))
-d_h1 = decoder_hidden1(d_in)
-d_h2 = decoder_hidden2(d_h1)
-d_out = decoder_out(d_h2)
+d_h = decoder_hidden(d_in)
+#d_h2 = decoder_hidden2(d_h1)
+d_out = decoder_out(d_h)
 decoder = Model(d_in, d_out)
 
 # define loss (sum of reconstruction and KL divergence)
@@ -187,7 +187,8 @@ dtmp = np.concatenate([X_test_input,ztmp,y_test],axis=1)
 generated = decoder.predict(dtmp)
 #np.savetxt('/run/media/amir/09133421928/fivek_dataset/im_enhancement-master/_scripts/python/Output_test.txt', generated)
 np.savetxt('E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/Output_test.txt', generated)
-
+sio.savemat('E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/X_test_input.mat',{'X_test_input': X_test_input})
+sio.savemat('E:/thesis_phd/Image_enhancement_MrNazemi/git_repo/im_enhancement/Data/generated.mat',{'generated': generated})
 #mtplot.pyplot.plot([1,2,3])
 index = np.arange(generated.shape[1])
 #mtplot.pyplot.subplot(131)
